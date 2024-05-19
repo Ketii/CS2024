@@ -17,6 +17,9 @@ library(ggplot2)
 install.packages("zoo")
 library(zoo)
 
+install.packages("timeDate")
+library(timeDate)
+
 
 getwd()
 
@@ -1756,12 +1759,91 @@ Final_sixth = merge(x = Final_fifth, y = TotalCB, by = "date", all.x = TRUE)
 sum(is.na(Final_sixth))
 
 
-write.csv(Final_sixth, file = "Lev.csv", row.names = TRUE)
+# write.csv(Final_sixth, file = "Lev.csv", row.names = TRUE)
 
 
 
-ttttest = read.csv("Lev.csv")
+# ttttest = read.csv("Lev.csv")
 
 
+################################################ dummy variable for holidays
+
+years = c(2015,2016,2017,2018,2019,2020,2021,2022,2023)
+
+
+Easter = as.Date(Easter(years))
+
+GoodFriday = Easter -2
+
+EasterMonday = Easter +1
+
+AscensionDay = Easter +39
+
+WhitMonday = Easter + 50
+
+
+NewYearsDay = as.Date(NewYearsDay(years))
+
+ChristmasDay = as.Date(ChristmasDay(years))
+
+BoxingDay = as.Date(BoxingDay(years))
+
+
+# arbeit 01.05
+
+
+LabourDay = as.Date(paste0(years, "-05-01"))
+
+
+
+# deutsche einheit 03.10
+
+TDDE = as.Date(paste0(years, "-10-03"))
+
+
+Holidays = data.frame(Easter,GoodFriday, EasterMonday, AscensionDay,  WhitMonday,
+                  NewYearsDay, ChristmasDay,BoxingDay, LabourDay,  TDDE)
+
+Final_sixth$date[799]
+
+str(Final_sixth)
+
+
+
+
+
+is_holiday = function(date) {
+     any(date == unlist(Holidays))
+   }
+
+
+Final_sixth$holiday_dummy = as.integer(sapply(Final_sixth$Day, is_holiday))
+
+
+
+
+
+Final_sixth[ Final_sixth$Day == as.POSIXct("2023-12-27"),]
+
+
+Final_sixth$Day[8:19]
+
+################################ weekend days
+
+
+Final_sixth$weekdayNumber = wday(Final_sixth$Day)
+
+# 1 = Sonntag
+# 7 = Samstag
+
+
+Final_sixth$is_weekend = ifelse(Final_sixth$weekdayNumber %in% c(1, 7), 1, 0)
+
+
+# write.csv(Final_sixth, file = "Lev.csv", row.names = TRUE)
+
+
+
+# ttttest = read.csv("Lev.csv")
 
 
