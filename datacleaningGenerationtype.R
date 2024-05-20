@@ -72,7 +72,7 @@ myAggreg$Types[grep("Fossil", myAggreg$ProductionType)] <- "Fossil"
 myAggreg$Types[grep("Hydro", myAggreg$ProductionType)] <- "Hydro"
 
 
-myAggreg$Types[grep("Other|Solar|Waste|Wind", myAggreg$ProductionType)] <- "Other"
+myAggreg$Types[grep("Other|Solar|Waste|Wind|Nuclear", myAggreg$ProductionType)] <- "Other"
 myAggreg$ProductionType <- ifelse(is.na(myAggreg$Types), myAggreg$ProductionType, myAggreg$Types)
 myAggreg$Types <- NULL
 
@@ -111,16 +111,40 @@ for (i in 3:112) {
     
     
     myAggreg_i <- subset(myAggreg_i, select = -c(Date, Hour))
+
+    
+    if(length(grep("-03-", myAggreg_i$DateTime))>0){
+        
+        dst_dates <- c("2015-03-29 01:59:59", "2016-03-27 01:59:59", "2017-03-26 01:59:59", 
+                   "2018-03-25 01:59:59", "2019-03-31 01:59:59", "2020-03-29 01:59:59", 
+                   "2021-03-28 01:59:59", "2022-03-27 01:59:59", "2023-03-26 01:59:59")
+    
+    
+    springforward <- grep("2015-03-29 01:00:00|2016-03-27 01:00:00|2017-03-26 01:00:00|2018-03-25 01:00:00|2019-03-31 01:00:00|2020-03-29 01:00:00|2021-03-28 01:00:00|2022-03-27 01:00:00|2023-03-26 01:00:00",
+                          myAggreg_i$DateTime)+17
+    
+    ToDopl_i <- myAggreg_i[springforward, ]
+    #year(myAggreg_i$DateTime)
+    ToDopl_i$DateTime <- rep(dst_dates[grep(year(myAggreg_i$DateTime)[1], dst_dates)],
+                           length(unique(myAggreg_i$ProductionType)))
+    
+    ToDopl_i$DateTime <- as.POSIXct(strptime(ToDopl_i$DateTime, format = "%Y-%m-%d %H:%M:%S"))
+    
+    myAggreg_i <- rbind(myAggreg_i, ToDopl_i)
+    
+    myAggreg_i <- myAggreg_i[order(myAggreg_i$DateTime), ]
+    }
+    
+    
     myAggreg_i$Types <- NA
     
     myAggreg_i$Types[grep("Fossil", myAggreg_i$ProductionType)] <- "Fossil"
     myAggreg_i$Types[grep("Hydro", myAggreg_i$ProductionType)] <- "Hydro"
     
     
-    myAggreg_i$Types[grep("Other|Solar|Waste|Wind", myAggreg_i$ProductionType)] <- "Other"
+    myAggreg_i$Types[grep("Other|Solar|Waste|Wind|Nuclear", myAggreg_i$ProductionType)] <- "Other"
     myAggreg_i$ProductionType <- ifelse(is.na(myAggreg_i$Types), myAggreg_i$ProductionType, myAggreg_i$Types)
     myAggreg_i$Types <- NULL
-    
     myAggreg_i <- myAggreg_i %>%
         group_by(DateTime, ProductionType) %>%
         summarise(GenerationOutputSum = mean(GenerationOutputSum, na.rm = TRUE),
@@ -143,9 +167,9 @@ for (i in 3:112) {
 wide_data <- wide_data[wide_data$DateTime <= as.POSIXct("2024-03-15 23:00:00"),]
 
 
+
+
 write.csv(wide_data, file = paste0(path,"/GenerationOutputPerType_clean.csv"))
-
-
-
+writexl::write_xlsx(wide_data, path = paste0(path,"/GenerationOutputPerType_clean.xlsx"))
 
 
