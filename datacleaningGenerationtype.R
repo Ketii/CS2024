@@ -25,7 +25,7 @@ prefix <- paste0(path, "/Data")
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# A. Fragen in den Erklärvideos der Worksheetaufgaben
+# A. 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
 #names of datasets
@@ -106,34 +106,38 @@ for (i in 3:112) {
         summarise(GenerationOutputSum = sum(ActualGenerationOutput, na.rm = TRUE),
                   ConsumptionSum = sum(ActualConsumption, na.rm = TRUE))
     
-    myAggreg_i$DateTime <- as.POSIXct(paste(myAggreg_i$Date,  paste0(myAggreg_i$Hour,":00:00")), format = "%Y-%m-%d %H:%M:%S")
-    
+    #myAggreg_i$DateTime <- as.POSIXct(paste(myAggreg_i$Date,  paste0(myAggreg_i$Hour,":00:00")), format = "%Y-%m-%d %H:%M:%S")
+    custom_tz = "Etc/GMT-1"
+    myAggreg_i$DateTime = ymd_hms(paste(myAggreg_i$Date,  paste0(myAggreg_i$Hour,":00:00")))
+    myAggreg_i$DateTime = force_tz(myAggreg_i$DateTime, custom_tz)
     
     
     myAggreg_i <- subset(myAggreg_i, select = -c(Date, Hour))
 
     
-    if(length(grep("-03-", myAggreg_i$DateTime))>0){
-        
-        dst_dates <- c("2015-03-29 01:59:59", "2016-03-27 01:59:59", "2017-03-26 01:59:59", 
-                   "2018-03-25 01:59:59", "2019-03-31 01:59:59", "2020-03-29 01:59:59", 
-                   "2021-03-28 01:59:59", "2022-03-27 01:59:59", "2023-03-26 01:59:59")
-    
-    
-    springforward <- grep("2015-03-29 01:00:00|2016-03-27 01:00:00|2017-03-26 01:00:00|2018-03-25 01:00:00|2019-03-31 01:00:00|2020-03-29 01:00:00|2021-03-28 01:00:00|2022-03-27 01:00:00|2023-03-26 01:00:00",
-                          myAggreg_i$DateTime)+17
-    
-    ToDopl_i <- myAggreg_i[springforward, ]
-    #year(myAggreg_i$DateTime)
-    ToDopl_i$DateTime <- rep(dst_dates[grep(year(myAggreg_i$DateTime)[1], dst_dates)],
-                           length(unique(myAggreg_i$ProductionType)))
-    
-    ToDopl_i$DateTime <- as.POSIXct(strptime(ToDopl_i$DateTime, format = "%Y-%m-%d %H:%M:%S"))
-    
-    myAggreg_i <- rbind(myAggreg_i, ToDopl_i)
-    
-    myAggreg_i <- myAggreg_i[order(myAggreg_i$DateTime), ]
-    }
+   #  if(length(grep("-03-", myAggreg_i$DateTime))>0){
+   #  
+   #  
+   #  springforward <- grep("2015-03-29 01:00:00|2016-03-27 01:00:00|2017-03-26 01:00:00|2018-03-25 01:00:00|2019-03-31 01:00:00|2020-03-29 01:00:00|2021-03-28 01:00:00|2022-03-27 01:00:00|2023-03-26 01:00:00",
+   #                        myAggreg_i$DateTime)+length(unique(myAggreg_i$ProductionType))
+   #  
+   # 
+   # 
+   #  
+   # 
+   # # myAggreg_i$DateTime <-  myAggreg_i$DateTime[springforward] +  3600
+   #  
+   #  ToDopl_i <- myAggreg_i[springforward, ]
+   #  #year(myAggreg_i$DateTime)
+   #  ToDopl_i$DateTime <- rep(myAggreg_i$DateTime[springforward] +  3600,
+   #                         length(unique(myAggreg_i$ProductionType)))
+   #  
+   #  #ToDopl_i$DateTime <- as.POSIXct(strptime(ToDopl_i$DateTime, format = "%Y-%m-%d %H:%M:%S"))
+   #  
+   #  myAggreg_i <- rbind(myAggreg_i, ToDopl_i)
+   #  
+   #  myAggreg_i <- myAggreg_i[order(myAggreg_i$DateTime), ]
+   #  }
     
     
     myAggreg_i$Types <- NA
